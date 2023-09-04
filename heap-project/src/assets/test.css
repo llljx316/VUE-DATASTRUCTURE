@@ -1,0 +1,26 @@
+#app {
+    max-width: auto;
+    margin: 0 auto;
+    padding: 2rem;
+  
+    font-weight: normal;
+    vertical-align: middle;
+  }
+
+  @media (min-width: 1024px) {
+    body {
+      /* display: flex; */
+      /* place-items: center; */
+      
+        background-image: url('./DSCF1082.jpg');
+        background-size:100%;
+
+        display: flex;
+        justify-content:center;
+        align-items:center; 
+    }
+  
+    #app {
+           
+    }
+  }
