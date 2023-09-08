@@ -17,6 +17,7 @@
         :data="personStorage"
         style="width: 100%"
         @selection-change="handleCheckChange"
+        @row-click="handleRowClick"
     >
         <el-table-column type="selection" width="100" />
         <el-table-column property="name" label="name" />
@@ -49,7 +50,7 @@
                     v-for="item in treeOrd"
                     :key="item.id"
                     :label="item.name"
-                    :value="item"
+                    :value="item.id"
                   />
                 </el-select>
                 
@@ -114,7 +115,8 @@
 </template>
 
 <script setup lang="ts">
-import { treePrimary,treeMiddle,treeHigh,treeUni,treeOrd, allNM } from './sharedArguements';
+import { treePrimary,treeMiddle,treeHigh,treeUni,treeOrd, allNM, __activePartGraph, __partGraphCenter
+,__cancelSelectionDisp } from './sharedArguements';
 import {ref,reactive} from 'vue'
 import {PersonNode} from './dataStructure/PersonNode'
 import type { FreeKeyObject } from './dataStructure/FreeKeyObject';
@@ -133,12 +135,6 @@ const input_user = ref('')
 
 //显示数组
 const personStorage = reactive<PersonNode[]>([])
-
-const tableData= reactive([
-    { name: "Alice"},
-    { name: "Bob"},
-    { name: "Charlie"},
-])
 const dialogVisible = ref(false)
 
 function handleCellClick(row:number, column:number, event:any) {
@@ -171,7 +167,8 @@ function confirmDialog(){
     const newPerson = new PersonNode(input_user.value)
 
     //添加关系
-    selectedOrd.value.forEach((item)=>{
+    selectedOrd.value.forEach((id)=>{
+        const item = allNM.getNodeById(id)
         formRelation(newPerson,item)
     })
     formRelation(newPerson,selectedPri.value)
@@ -238,9 +235,14 @@ function deleteItems(){
         //再删后台的
         allNM.remove(mnode)
     })
-    
+}
 
+const cancelSelectionDisp = ref(false)
 
+const handleRowClick = (row:any) => {
+  __partGraphCenter.value = personStorage[row]
+  __activePartGraph.value = true
+  __cancelSelectionDisp.value = true
 }
 
 </script>
