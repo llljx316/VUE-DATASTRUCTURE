@@ -1,7 +1,8 @@
 <template>
-    <div  class="info-item border-item">
+    <div  class="up-texture">
+        <h5 v-if="__activePartGraph">已有的好友和群组</h5>
         <el-table
-        id="name-table"
+        :class="__activePartGraph&&__partGraphCenter.tag==NodeTag.PERSON?'table-item-half':'table-item-half-full'"
         :data="friendNow"
         @cell-click="handleCellClick"
         v-if="__activePartGraph"
@@ -21,10 +22,13 @@
         </el-table>
 
         <el-table
-        id="group-table"
+        class="table-item-half down-half"
         :data="groupNow"
         @cell-click="handleCellClick"
-        v-if="__activePartGraph"
+        v-if="__activePartGraph&&__partGraphCenter.tag==NodeTag.PERSON"
+        style="border-radius: 20px;
+            overflow: hidden;
+            border-collapse: collapse;"
         >
         <el-table-column
             prop="name"
@@ -48,7 +52,7 @@
     <script setup lang="ts">
         import { __activePartGraph,friendNow, groupNow, allNM, __partGraphCenter } from './sharedArguements';
         import { ref } from 'vue'
-        import {ElMessageBox} from 'element-plus'
+        import { NodeTag } from './dataStructure/NodeBase';
 
         function deleteOp(node:any){
             ElMessageBox.confirm('确定要删除吗？', '警告', {
@@ -73,6 +77,18 @@
         }
     </script>
     
-    <style>
+    <style scoped>
+
+        .table-item-half-full{
+            width:100%;
+            height: 92%;
+        }
+        
+        .table-item-half{
+            width:100%;
+            height:46%;
+        }
+
+        
         
     </style>

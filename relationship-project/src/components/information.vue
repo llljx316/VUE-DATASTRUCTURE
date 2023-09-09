@@ -2,7 +2,6 @@
 import { __cancelSelectionDisp, __activePartGraph, 
     __partGraphCenter, allNM, treesAll, friendCanMade,
     treePrimary,treeMiddle,treeHigh,treeUni,treeOrd, friendRecommend, groupRecommend} from './sharedArguements';
-import { ElMessage, ElMessageBox } from 'element-plus'
 import { ref, computed, watch } from 'vue'
 import type { UploadFile, UploadInstance, UploadProps, UploadRawFile  } from 'element-plus'
 import {genFileId } from 'element-plus'
@@ -90,17 +89,16 @@ const showAddGroup = computed(() => {return classType.value=='人物'})
     //选群组需要的
     const groupDialogVisible = ref(false)
     const selectedOrd = ref<number[]>([])//注意默认读取字符串
-    const selectedPri = ref()
-    const selectedMid = ref()
-    const selectedHig = ref()
-    const selectedUni = ref()
+    const selectedPri = ref<number[]>([])
+    const selectedMid = ref<number[]>([])
+    const selectedHig = ref<number[]>([])
+    const selectedUni = ref<number[]>([])
 
     const selectedEle = [selectedOrd, selectedPri, selectedMid, selectedHig,selectedUni]
 
     function clearGroup(){
         selectedEle.forEach((item,index)=>{
-            if(index==0) item.value=[]
-            else item.value=null
+            item.value=[]
         })
     }
 
@@ -115,16 +113,16 @@ const showAddGroup = computed(() => {return classType.value=='人物'})
                 selectedOrd.value.push(item.id)
             }
             else if(item.tag ==NodeTag.PRIMARY_SCHOOL){
-                selectedPri.value = item.id
+                selectedPri.value.push(item.id)
             }
             else if(item.tag ==NodeTag.JUNIOR_HIGH){
-                selectedMid.value = item.id
+                selectedMid.value.push(item.id)
             }
             else if(item.tag ==NodeTag.SENIOR_HIGH){
-                selectedHig.value = item.id
+                selectedHig.value.push(item.id)
             }
             else if(item.tag ==NodeTag.UNIVERSITY){
-                selectedUni.value = item.id
+                selectedUni.value.push(item.id)
             }
         })
 
@@ -156,27 +154,18 @@ const showAddGroup = computed(() => {return classType.value=='人物'})
     function confirmGroupDialog(){
         //删除关系
         orgSel.forEach((item:any, index:number)=>{
-            if(index==0){
-                item.forEach((id)=>{
-                    if(selectedEle[index].value.find((now)=>now==id)==null) 
-                        __partGraphCenter.value.removeRelation(allNM.getNodeById(id))
-                    })
-                }
-            else{
-                if(item!=null&&selectedEle[index].value!=item) 
-                    __partGraphCenter.value.removeRelation(allNM.getNodeById(item))
-            }
-                    
+            item.forEach((id)=>{
+                if(selectedEle[index].value.find((now)=>now==id)==null) 
+                    __partGraphCenter.value.removeRelation(allNM.getNodeById(id))
+                })    
         })
 
         //添加关系
-        selectedOrd.value.forEach((id)=>{
-            formRelation(__partGraphCenter,id)
+        selectedEle.forEach((selectedItem) => {
+            selectedItem.value.forEach((id)=>{
+                formRelation(__partGraphCenter,id)
+            })
         })
-        formRelation(__partGraphCenter,selectedPri.value)
-        formRelation(__partGraphCenter,selectedMid.value)
-        formRelation(__partGraphCenter,selectedHig.value)
-        formRelation(__partGraphCenter,selectedUni.value)
 
         
 
@@ -207,21 +196,34 @@ const showAddGroup = computed(() => {return classType.value=='人物'})
 </script>
 
 <template>
-    <el-row class="border-item">
-        <el-col  v-if = '__cancelSelectionDisp'>
-            <el-row>
-                <!-- 信息 -->
-                {{classType}}:{{__partGraphCenter.name}}
+    <div class="down-textrue">
+        <el-col id="down-item-total"  v-if = '__cancelSelectionDisp'>
+            <el-row :span="12" id = "down-item-item">
+                <p class="pinfo-item">
+                    <!-- 信息 -->
+                    {{classType}}:{{__partGraphCenter.name}}
+                </p>
             </el-row>
-            <el-row class="choose">
+            <el-row id = "down-item-item" :span="12">
                 <el-button type="primary" @click="handleCancelSelection"
                 >取消选择</el-button>
-                <el-button type="primary" @click="()=>{friendDialogVisible = true;}">修改朋友</el-button>
+                <el-button type="primary" @click="()=>{friendDialogVisible = true;}">添加朋友</el-button>
+                
+                <!-- <el-button></el-button> -->
+                
+                <!-- 选择群组 -->
+                <el-button v-if="showAddGroup" type="primary" @click="initDiaG">修改群组</el-button>
+                
+
+                <!-- 推荐朋友drawer -->
+                <el-button @click="()=>{drawerVisable = true}" type="primary" v-if="__partGraphCenter.tag==NodeTag.PERSON">社交推荐</el-button>
+                
+            </el-row>
+                <!-- 选朋友的弹框 -->
                 <el-dialog
                     title="提示"
                     v-model="friendDialogVisible"
-                    width="30%"
-                    :before-close="()=>{friendDialogVisible = false;}"
+                    :before-close="()=>{return friendDialogVisible = false;}"
                 >
                     <el-select v-model='userIdSelect' class="m-2" placeholder="不选则暂无朋友" multiple clearable >
                     <el-option
@@ -234,17 +236,15 @@ const showAddGroup = computed(() => {return classType.value=='人物'})
                     <el-button type="primary" @click="confirmDialogFriend">确认</el-button>
                 </el-dialog>
 
-                <!-- 选择群组 -->
-                <el-button v-if="showAddGroup" type="primary" @click="initDiaG">修改群组</el-button>
+                <!-- 选群组的弹框 -->
                 <el-dialog
                     title="请修改或选择相应的群组"
                     v-model="groupDialogVisible"
                     width="30%"
                     :before-close="()=>{groupDialogVisible = false;}"
                 >
-                <template #footer>
-                    <span class="dialog-footer" >
-                        <div>请选择普通群组（可多个）:</div>
+                    <span class="dialog-body" >
+                        <div>请选择普通群组:</div>
                         <el-select v-model='selectedOrd' class="m-2" placeholder="不选为没有" multiple clearable>
                         <el-option
                             v-for="item in treeOrd"
@@ -257,7 +257,7 @@ const showAddGroup = computed(() => {return classType.value=='人物'})
                         
 
                         <div>请选择小学:</div>
-                        <el-select v-model='selectedPri' class="m-2" placeholder="不选为没有">
+                        <el-select v-model='selectedPri' class="m-2" placeholder="不选为没有" multiple clearable>
                             <!-- <el-option :value="null" label="空选项"></el-option>     -->
                         <el-option
                             v-for="item in treePrimary"
@@ -268,7 +268,7 @@ const showAddGroup = computed(() => {return classType.value=='人物'})
                         </el-select>
 
                         <div>请选择初中:</div>
-                        <el-select v-model='selectedMid' class="m-2" placeholder="不选为没有" >
+                        <el-select v-model='selectedMid' class="m-2" placeholder="不选为没有"  multiple clearable>
                             <!-- <el-option :value="null" label="空选项"></el-option>     -->
                         <el-option
                             v-for="item in treeMiddle"
@@ -279,7 +279,7 @@ const showAddGroup = computed(() => {return classType.value=='人物'})
                         </el-select>
 
                         <div>请选择高中:</div>
-                        <el-select v-model='selectedHig' class="m-2" placeholder="不选为没有" >
+                        <el-select v-model='selectedHig' class="m-2" placeholder="不选为没有"  multiple clearable>
                         <el-option
                             v-for="item in treeHigh"
                             :key="item.id"
@@ -289,7 +289,7 @@ const showAddGroup = computed(() => {return classType.value=='人物'})
                         </el-select>
 
                         <div>请选择大学:</div>
-                        <el-select v-model='selectedUni' class="m-2" placeholder="不选为没有" >
+                        <el-select v-model='selectedUni' class="m-2" placeholder="不选为没有" multiple clearable >
                         <el-option
                             v-for="item in treeUni"
                             :key="item.id"
@@ -297,16 +297,16 @@ const showAddGroup = computed(() => {return classType.value=='人物'})
                             :value="item.id"
                         />
                         </el-select>
-                        <el-button @click="clearGroup">清空</el-button>
-                        <el-button type="primary" @click="confirmGroupDialog">确定</el-button>
+                        <div class="flex-row">
+                            <el-button type="primary" @click="clearGroup" class="equal-button">清空</el-button>
+                            <el-button type="primary" @click="confirmGroupDialog" class="equal-button">确定</el-button>
+                        </div>
                     </span>
-                </template>
                 </el-dialog>
 
-                <!-- 推荐朋友drawer -->
-                <el-button @click="()=>{drawerVisable = true}" type="primary" v-if="__partGraphCenter.tag==NodeTag.PERSON">推荐朋友</el-button>
+                <!-- 推荐朋友的弹框 -->
                 <el-drawer
-                    title="推荐朋友"
+                    title="推荐朋友和群组"
                     v-model="drawerVisable"
                     :direction="'rtl'"
                     :before-close="()=>{drawerVisable = false}"
@@ -315,7 +315,6 @@ const showAddGroup = computed(() => {return classType.value=='人物'})
                     <!-- <span>我来啦!</span>
                      -->
                      <el-table
-                        id="name-table"
                         :data="friendRecommend"
                         @cell-click="handleFriendDrawerClick"
                     >
@@ -359,14 +358,14 @@ const showAddGroup = computed(() => {return classType.value=='人物'})
                         </el-table-column>
                     </el-table>
                     </el-drawer>
-            </el-row>
+
             <!-- 有部分选择的时候 -->
         </el-col> 
         
         
-        <div class="right-side">
-            <!-- 导入 -->
-            <!-- <el-upload
+        <!-- <div class="right-side">
+            导入
+            <el-upload
                 ref="upload"
                 action=""
                 class="upload-demo"
@@ -390,14 +389,60 @@ const showAddGroup = computed(() => {return classType.value=='人物'})
             </el-upload>
 
             <el-button type="primary" @click="handleExport"
-            >导出</el-button> -->
-        </div>
-    </el-row>
+            >导出</el-button>
+        </div> -->
+    </div>
 </template>
 
 <style scoped>
-    .el-row{
-        background-color:azure;
-        min-height:150px;
+    .down-textrue{
+        height:100%;
+        border-style:solid;
+        border-width:5px;
+        border-radius: 20px;
+        display:flex;
+        flex-direction: column;
+        align-items: center;
+        justify-items: center;
     }
+
+    .pinfo-item{
+        text-align: center;
+        align-items: center;
+        font-size: x-large;
+    }
+
+    .equal-button{
+        flex: 1;
+    }
+
+    #down-item-item.el-row{
+        align-items: center;
+        justify-content: center;
+    }
+
+    #down-item-total{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        
+    }
+
+
+    .el-row .down-item.total{
+        align-items: center;
+        justify-content: center;
+        width:100%
+        border-radius
+    }
+
+
+    .el-row .down-item.item{
+        align-items: center;
+        justify-content: center;
+        width:100%
+    }
+
+
 </style>

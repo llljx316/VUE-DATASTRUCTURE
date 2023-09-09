@@ -6,65 +6,76 @@
 </script>
 
 <template>
+    <div class="allinfoItem">
+        <el-row class="flex-row-up" :gutter="3">
+            <el-col class="info-item" :span="8" ><users/></el-col>
+            <el-col class="info-item" :span="8"><groups/></el-col>
+            <el-col class="info-item" :span="8"><goodFrend/></el-col>
+        </el-row>
+        <el-row class="down-info">
+            <el-col class="info-item-down"><information/></el-col>
+        </el-row>
+    </div>
     
-    <el-row :gutter="5" class="down-info">
-        <el-col class="info-item" :span="8"><users/></el-col>
-        <el-col class="info-item" :span="8"><groups/></el-col>
-        <el-col class="info-item" :span="8"><goodFrend/></el-col>
-    </el-row>
-    <el-row class="up-info">
-        <el-col :span="24"><information/></el-col>
-    </el-row>
     
     
 </template>
 
-<style scoped>
-    .up-info{
-        /* margin-bottom: 5px; */
-        background-color:azure;
-        height:30%;
+<style>
+    .flex-row-up{
+        flex:2;
+        display: flex;
+        flex-direction: row; 
+        align-items: center;
+        justify-items: center;
+        /* gap:10px */
     }
+    .allinfoItem{
+        display: flex;
+        gap:15px;
+        flex-direction: column;
+        flex-shrink: 1;
+        height:95%;
+        justify-items :center;
+        margin-top: 10px; /* 设置上边距 */
+        margin-bottom: 10px; /* 设置下边距 */
+    }
+    
+    
 
     .down-info{
-        /* margin-bottom: 2px; */
-        /* padding-right: 1%; */
-        &:last-child{
-            margin-bottom: 0;
-        }
+        flex:1;
+    }
+    
 
-        margin-top: 2px;
+    .up-item{
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      flex-shrink: 1;
+    }
 
-        background-color:azure;
-        height: 69%;
+    .upper-item{
+        flex: 1;
     }
 
     .info-item{
-        background-color:azure;
-        min-height:95%
-        /* margin-right: 2px; */
+        /* flex:1; */
+        height: 100%; 
+
+
+
     }
 
-    .border-item{
-        padding-left: 10px;
-        padding-right: 10px;
-        padding-bottom: 0%;
-        height:95%
+    .info-item-down{
+        flex:1;
+        height:100%;
     }
 
     
 
  
+    
 
-    /* .el-col{
-        border-style:solid;
-        border-width:5px;
-        border-radius: 20px;
-    } */
-
-    .el-table,
-    .el-tree{
-        height: 60%;
-        overflow-y: auto; /* 启用垂直滚动条 */
-    }
+    
 </style>

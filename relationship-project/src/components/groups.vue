@@ -1,44 +1,48 @@
 <template>
     <!-- <h5 id = "head">群组信息</h5> -->
-    <el-col class="border-item">
-      <el-row style="height:85%" :span="24">
+    <div class="up-texture">
+      <h5>群组</h5>
       <el-tree 
-        class="info-item table-item"
         :data="treeDisplay"
         :props="defaultProps"
         lable="组别"
-        id = "name-table"
+        id = "group-table"
         @node-click="handleNodeClick"
         :defaultExpandAll="true"
         :show-header="true"
         show-checkbox
         @check-change="handleCheckChange"
-        style="width: 100%;"
       ></el-tree>
-    
-      </el-row>
 
     
     
     <!-- 添加按键 -->
     <div class="bottom-ele">
-      <el-col :span="12">
         <el-button class="bottom-button" 
-          icon="edit" @click="showDialog" type="primary">提交</el-button>
-          </el-col>
+          @click="showDialog" type="primary"><el-icon><Plus /></el-icon></el-button>
           <el-dialog
-              title="提示"
+              title="添加群组"
               v-model="dialogVisible"
               width="30%"
               :before-close="handleClose"
           >
-          <span>这是一段信息</span>
-          <template #footer>
-              <span class="dialog-footer">
+              <span class="dialog-body">
                 <!-- 调整排版 -->
-                <el-input v-model="input_name" placeholder="Please input" clearable />
+                <div>请输入群组名称:</div>
+                <div style="display: flex; flex-direction: row;">
+                  <el-tooltip placement="top" :disabled="NoEmpty">
+                    <template #content> 不允许输入空字符串 </template>
+                    <el-input v-model='input_name' placeholder="不能为空" clearable />
+                  </el-tooltip>
+                  <el-icon v-show="NoEmptyRev" style="color:red"><WarningFilled /></el-icon>
+                </div>
+                <!-- <el-input v-model="input_name" placeholder="不可以为空" clearable /> -->
+                
+                <div class="add-marg">请输入群组的影响力(默认为1): </div>
                 <el-input-number v-model="input_rate" :precision="2" :step="0.1" :min="0"/>
-                <el-select v-model='input_class' class="m-2" placeholder="不选为普通群组"  clearable>
+                
+                <div class="add-marg">请选择群组的类型</div>
+                <el-select v-model='input_class' class="m-2" placeholder="不选为普通群组" >
                   <el-option
                     v-for="item in option_class"
                     :key="item.value"
@@ -46,6 +50,7 @@
                     :value="item.value"
                   />
                 </el-select>
+                <div class="add-marg">请选择已有个人数据中的群组成员: </div>
                 <el-select v-model='userIdSelect' class="m-2" placeholder="不选则暂无朋友" multiple clearable >
                   <el-option
                     v-for="item in personStorage"
@@ -54,19 +59,22 @@
                     :value="item.id"
                   />
                 </el-select>
-                <el-button @click="handleClose">取 消</el-button>
-                <el-button type="primary" @click="confirmDialog">确 定</el-button>
-              </span>
-          </template>
+                
+                </span>
+
+                <template #footer>
+                  <div class="flex-row">
+                    <el-button @click="handleClose">取 消</el-button>
+                    <el-button type="primary" @click="confirmDialog">确 定</el-button>
+                  </div>
+                </template>
           </el-dialog>
         
 
-    <!-- 删除的按键以及操作 -->
-      <el-col :span="11">          
-        <el-button @click="handleDeleteSelected" type="danger">删除选中</el-button>
-        </el-col>
+    <!-- 删除的按键以及操作 -->      
+          <el-button @click="handleDeleteSelected" type="danger" :disabled="disabledDelete"><el-icon><Delete /></el-icon></el-button>
       </div>
-  </el-col>
+  </div>
 
 
   </template>
@@ -78,13 +86,17 @@
       __activePartGraph, __cancelSelectionDisp, __partGraphCenter,personStorage  } from './sharedArguements';
     import  {NodeTag} from './dataStructure/NodeBase'
     import { GroupNode } from './dataStructure/GroupNode';
-    import {ElMessageBox } from 'element-plus'
     import type { FreeKeyObject } from './dataStructure/FreeKeyObject';
+    import { Plus, Delete, WarningFilled } from '@element-plus/icons-vue'
+    import '../assets/test.css'
     
+
 
     //相关群组已经引进
       const userIdSelect = ref([])
     //树形结构数据
+
+    const disabledDelete = computed(()=>{return ids_selected.length==0})
     
 
     const trees = [treePrimary,treeMiddle,treeHigh,treeUni,treeOrd]
@@ -113,7 +125,7 @@
     //输入框相关参数
     const input_name = ref('')
     const input_rate = ref(1)
-    const input_class = ref<NodeTag>()
+    const input_class = ref<NodeTag>(NodeTag.GROUP)
     //输入框选项
     const option_class = [
       {
@@ -168,6 +180,13 @@
 
     //插入的代码
     function confirmDialog(){
+      if(input_name.value.trim()==''){
+        NoEmpty.value = false
+        return
+      }
+
+      NoEmpty.value = true
+
       let now_tag = (typeof input_class.value === 'undefined' ? NodeTag.GROUP : input_class.value)
       const ins = new GroupNode(input_name.value, now_tag, input_rate.value)
       allNM.insert(ins)
@@ -196,6 +215,7 @@
           ins.addRelation(node)
       })
       
+      clear()
       handleClose()
     }
 
@@ -216,7 +236,7 @@
 
     
     //删除部分
-    let ids_selected:number[] = reactive([])
+    const ids_selected:number[] = reactive([])
 
     function littleDeleted(group: any[],id:number, obj:{is_deleted:boolean, node:NodeBase | undefined}){
     if(!obj.is_deleted){
@@ -234,19 +254,22 @@
 
     function deleteItems(){
       
-      //先删显示的
-      const obj = {is_deleted:false, node:undefined}
       ids_selected.forEach((id)=>{
+      //先删显示的
+        const obj = {is_deleted:false, node:undefined}
+        
         for(let i = 0; i<trees.length; ++i){
           littleDeleted(trees[i],id,obj)
           if(obj.is_deleted){
             break
           }
         }
+
+        //再删后台的
+        allNM.remove(obj.node)
       })
       
-      //再删后台的
-      allNM.remove(obj.node)
+      
 
     }
     
@@ -265,6 +288,21 @@
       console.log(data, checked, indeterminate,data.id)
     }
 
+    //输入错误处理
+    //输入错误处理
+    const NoEmpty = ref(true)
+    const NoEmptyRev = computed(()=>{
+      return !NoEmpty.value
+    })
+
+    //清除相应的数据
+    function clear(){
+      input_name.value = ''
+      input_rate.value = 1
+      input_class.value = NodeTag.GROUP
+      userIdSelect.value = []
+    }
+
 
 
  
@@ -276,10 +314,29 @@
   height: 40px;
 }
 
-.el-tree{
-  min-height: 85%;
-  overflow-y: auto; /* 启用垂直滚动条 */
-  border-color:black
+
+
+
+
+
+.bottom-ele{
+  display:flex;
+  justify-content: center;
+  flex-flow:true;
+  flex-shrink:true;
+  gap:3px;
+  margin:5px;
+  flex:5
+}
+
+.bottom-ele .el-button{
+  flex:1 ;
+}
+
+#group-table{
+  height:43vh;
+  overflow:auto;
+  border-radius: 20px;
 }
 
 

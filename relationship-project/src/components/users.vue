@@ -1,50 +1,43 @@
 <template>
-<div class="info-item border-item">
-    <!-- <el-table
-    id="name-table"
-    :data="tableData"
-    @cell-click="handleCellClick"
-    >
-    <el-table-column
-        prop="name"
-        label="姓名"
-    ></el-table-column>
-    </el-table> -->
+<div class="up-texture">
+
+    <h5>个人</h5>
 
     <el-table
         ref="multipleTableRef"
-        class="table-item"
+        class="table-person"
         :data="personStorage"
-        style="width: 100%"
         @selection-change="handleCheckChange"
         @row-click="handleRowClick"
+        
     >
         <el-table-column type="selection" width="100" />
         <el-table-column property="name" label="name" />
     </el-table>
-    <!-- <div style="margin-top: 20px">
-        <el-button @click="toggleSelection([tableData[1], tableData[2]])"
-        >Toggle selection status of second and third rows</el-button
-        >
-        <el-button @click="toggleSelection()">Clear selection</el-button>
-    </div> -->
 
     <!-- 添加按键 -->
     <div class="bottom-ele">
-      <el-col :span="12">
-        <el-button class="bottom-button" 
-          @click="showDialog" type="primary">添加</el-button>
-          </el-col>
+      <!-- <el-col :span="12"> -->
+        <el-button
+          @click="showDialog" type="primary"><el-icon><Plus/></el-icon></el-button>
+          <!-- </el-col> -->
         <el-dialog
-            title="请输入添加人姓名"
+            title="请输入添加人信息"
             v-model="dialogVisible"
             width="30%"
             :before-close="handleClose"
         >
-          <template #footer>
-              <span class="dialog-footer" >
-                <el-input v-model='input_user' placeholder="请输入姓名" clearable />
-                <div>请选择普通组织（可多个）:</div>
+          <!-- <template> -->
+              <span class="dialog-body">
+                <div>请输入姓名:</div>
+                <div style="display: flex; flex-direction: row;">
+                  <el-tooltip placement="top" :disabled="NoEmpty">
+                    <template #content> 不允许输入空字符串 </template>
+                    <el-input v-model='input_user' placeholder="不能为空" clearable />
+                  </el-tooltip>
+                  <el-icon v-show="NoEmptyRev" style="color:red"><WarningFilled /></el-icon>
+                </div>
+                <div class="add-marg">请选择普通组织（可多个）:</div>
                 <el-select v-model='selectedOrd' class="m-2" placeholder="不选为没有" multiple clearable>
                   <el-option
                     v-for="item in treeOrd"
@@ -56,48 +49,48 @@
                 
                 
 
-                <div>请选择小学:</div>
-                <el-select v-model='selectedPri' class="m-2" placeholder="不选为没有">
+                <div class="add-marg">请选择小学:</div>
+                <el-select v-model='selectedPri' class="m-2" placeholder="不选为没有" multiple clearable>
                     <!-- <el-option :value="null" label="空选项"></el-option>     -->
                   <el-option
                     v-for="item in treePrimary"
                     :key="item.id"
                     :label="item.name"
-                    :value="item"
+                    :value="item.id"
                   />
                 </el-select>
 
-                <div>请选择初中:</div>
-                <el-select v-model='selectedMid' class="m-2" placeholder="不选为没有" >
+                <div class="add-marg">请选择初中:</div>
+                <el-select v-model='selectedMid' class="m-2" placeholder="不选为没有" multiple clearable >
                     <!-- <el-option :value="null" label="空选项"></el-option>     -->
                   <el-option
                     v-for="item in treeMiddle"
                     :key="item.id"
                     :label="item.name"
-                    :value="item"
+                    :value="item.id"
                   />
                 </el-select>
 
-                <div>请选择高中:</div>
-                <el-select v-model='selectedHig' class="m-2" placeholder="不选为没有" >
+                <div class="add-marg">请选择高中:</div>
+                <el-select v-model='selectedHig' class="m-2" placeholder="不选为没有" multiple clearable >
                   <el-option
                     v-for="item in treeHigh"
                     :key="item.id"
                     :label="item.name"
-                    :value="item"
+                    :value="item.id"
                   />
                 </el-select>
 
-                <div>请选择大学:</div>
-                <el-select v-model='selectedUni' class="m-2" placeholder="不选为没有" >
+                <div class="add-marg">请选择大学:</div>
+                <el-select v-model='selectedUni' class="m-2" placeholder="不选为没有"  multiple clearable>
                   <el-option
                     v-for="item in treeUni"
                     :key="item.id"
                     :label="item.name"
-                    :value="item"
+                    :value="item.id"
                   />
                 </el-select>
-                <div>请选择朋友:</div>
+                <div class="add-marg">请选择朋友:</div>
                 <el-select v-model='selectedFri' class="m-2" placeholder="不选为没有" multiple clearable>
                   <el-option
                     v-for="item in personStorage"
@@ -106,18 +99,23 @@
                     :value="item.id"
                   />
                 </el-select>
-
-                <el-button @click="clear">清空</el-button>
-                <el-button type="primary" @click="confirmDialog">确定</el-button>
+                
+                
               </span>
-          </template>
+              <template #footer>
+                <div class="flex-row">
+                  <el-button type="default" @click="clear" class="add-marg">清空</el-button>
+                  <el-button type="primary" @click="confirmDialog" class="add-marg">确定</el-button>
+                </div>
+              </template>
+          <!-- </template> -->
           </el-dialog>
         
 
     <!-- 删除的按键以及操作 -->
-      <el-col :span="11">          
-        <el-button @click="handleDeleteSelected" type="danger">删除选中</el-button>
-        </el-col>
+      <!-- <el-col :span="11">           -->
+        <el-button @click="handleDeleteSelected" type="danger" :disabled="deleteDisabled"><el-icon><Delete/></el-icon></el-button>
+        <!-- </el-col> -->
       </div>
 
 </div>
@@ -126,18 +124,20 @@
 <script setup lang="ts">
 import { treePrimary,treeMiddle,treeHigh,treeUni,treeOrd, allNM, __activePartGraph, __partGraphCenter
 ,__cancelSelectionDisp, personStorage, deleteItemMult } from './sharedArguements';
-import {ref,reactive} from 'vue'
+import {ref,computed, reactive} from 'vue'
 import {PersonNode} from './dataStructure/PersonNode'
 import type { FreeKeyObject } from './dataStructure/FreeKeyObject';
-import {ElMessageBox } from 'element-plus'
 import type { NodeBase } from './dataStructure/NodeBase';
+import {Plus,Delete,WarningFilled} from '@element-plus/icons-vue'
+
+const deleteDisabled = computed(()=>{return node_selected.value.length==0})
 
 
 const selectedOrd = ref([])//注意默认读取字符串
-const selectedPri = ref()
-const selectedMid = ref()
-const selectedHig = ref()
-const selectedUni = ref()
+const selectedPri = ref([])
+const selectedMid = ref([])
+const selectedHig = ref([])
+const selectedUni = ref([])
 const selectedFri = ref([])
 
 const selectedEle = [selectedOrd, selectedPri, selectedMid, selectedHig,selectedUni, selectedFri]
@@ -145,6 +145,12 @@ const input_user = ref('')
 
 //显示数组
 const dialogVisible = ref(false)
+
+//输入错误处理
+const NoEmpty = ref(true)
+const NoEmptyRev = computed(()=>{
+  return !NoEmpty.value
+})
 
 function handleCellClick(row:number, column:number, event:any) {
     // 处理单元格点击事件，你可以在这里执行你的自定义逻辑
@@ -173,22 +179,23 @@ function formRelation(NodeBase:any, node:any){
 
 function confirmDialog(){
     console.log(selectedOrd)
+    //输入为空的处理
+    if(input_user.value.trim()==''){
+      NoEmpty.value = false
+      return
+    }
+
+    NoEmpty.value = true
+
     const newPerson = new PersonNode(input_user.value)
 
     //添加关系
-    selectedOrd.value.forEach((id)=>{
-        const item = allNM.getNodeById(id)
-        formRelation(newPerson,item)
-    })
-    formRelation(newPerson,selectedPri.value)
-    formRelation(newPerson,selectedMid.value)
-    formRelation(newPerson,selectedHig.value)
-    formRelation(newPerson,selectedUni.value)
-    // if(selectedFri.value != undefined){
-      selectedFri.value.forEach((id)=>{
+    selectedEle.forEach((selectedItem) => {
+      selectedItem.value.forEach((id)=>{
         formRelation(newPerson,allNM.getNodeById(id))
       })
-    // }
+    })
+    // 
 
     
     //添加到显示数组中（也当表格）
@@ -208,12 +215,12 @@ function confirmDialog(){
 
 
 //应该是node的数组
-let node_selected:any = []
+const node_selected:any = ref([])
 
 const handleCheckChange = (
     data: FreeKeyObject
 ) => {
-        node_selected = data
+        node_selected.value = data
         console.log(data)
     }
 
@@ -227,7 +234,7 @@ function handleDeleteSelected(){
       .then(() => {
         // 用户点击了确定按钮，执行删除操作
         // deleteItems();
-        deleteItemMult(personStorage,node_selected)
+        deleteItemMult(personStorage,node_selected.value)
       })
       .catch(() => {
         // 用户点击了取消按钮或在对话框之外点击，不执行任何操作
@@ -248,26 +255,40 @@ const handleRowClick = (row:any) => {
 function clear(){
   input_user.value=''
   selectedEle.forEach((item,index)=>{
-    if(index==0||index==5) item.value=[]
-    else item.value=null
+    item.value=[]
   })
 }
 
 </script>
 
 <style scoped>
-    .info-item{
-        display: flex;
-        flex-direction: column;
+
+    .bottom-ele{
+      display:flex;
+      justify-content: center;
+      flex-flow:true;
+      flex-shrink:true;
+      gap:3px;
+      margin:5px;
+    }
+
+    .bottom-ele .el-button{
+      flex:1 ;
+    }
+
+    /* .flex-row{
+      margin-top: 20px;
+    } */
+    .table-person{
+      height:43vh;
+      overflow:auto;
+      border-radius: 20px;
     }
 
     
-    .bottom-button {
-        /* text-align: center; */
-        /* position: fixed; */
-        margin-bottom: 0%;
-        /* background-color: #fff; */
-        /* border-top: 1px solid #ccc; */
-    }
+    
+
+    
+    
 </style>
 

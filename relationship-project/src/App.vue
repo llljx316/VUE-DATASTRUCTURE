@@ -8,18 +8,17 @@ import graph from './components/graph.vue'
 </script>
 
 <template>
-  
-  <el-container>
-    <el-header style="width: 95vw; height:2vh">
-        社交关系网络
-    </el-header>
 
+ 
+  <el-container>
+    
     <el-main>
-      <main style="width: 95vw; height:80vh"> 
-        <el-row id="main-ele" :gutter="10" style="width: 100%;  height: 100%; border-style:solid;
+      <h1 style="margin-top: 0px; margin-bottom: 10px; font-size:xx-large; text-align: center; z-index: 1; color:rgba(0, 175, 0, 0.959)">社交关系网络</h1>
+      <main style="width: 93vw; height:80vh; "> 
+        <el-row id="main-ele" :gutter="10" style="width: 93vw;  height: 80vh; border-style:solid; justify-items: center; background-color: azure;
             border-width:5px; border-radius: 20px;">
-          <el-col :span="12" style="width: 50%; height: 100%;"><graph/></el-col>
-          <el-col :span="12" style="width: 50%; height: 100%; "><AllInfo /></el-col>
+          <el-col :span="12" style="height: 80vh;"><graph/></el-col>
+          <el-col :span="12" style="height: 80vh; "><AllInfo /></el-col>
         </el-row>
         
       </main>
@@ -29,16 +28,9 @@ import graph from './components/graph.vue'
 </template>
 
 <style>
-main,
-#main-ele{
-  /* justify-content:flex-start; */
-  align-items:center; 
-}
 
-.border-item{
-    border-style:solid;
-    border-width:5px;
-    border-radius: 20px;
-    /* padding:1%; */
-}
+
+
+
+
 </style>

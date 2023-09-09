@@ -1,5 +1,5 @@
 <template>
-    <div id="chart-container" class="border-item" style="height: 98%; margin-top: 2px;"></div>
+    <div id="chart-container" class="border-item" style="height: 96%; margin-top: 1%; background-color: white;"></div>
 </template>
 
 
@@ -162,11 +162,12 @@ import { GroupNode } from './dataStructure/GroupNode';
                     fontSize: 18,
                     align: "center",
                 },
-                roam: true,
                 lineStyle: {
-                color: 'source',
-                curveness: 0.3
-                }
+                    color: 'black',
+                    curveness: 0.3
+                },
+                roam: true,
+                
             }
             ],
             
@@ -382,6 +383,6 @@ import { GroupNode } from './dataStructure/GroupNode';
 
 </script>
 
-<script lang="ts">
-
-</script>
+<style>
+    
+</style>

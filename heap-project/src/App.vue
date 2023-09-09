@@ -288,7 +288,7 @@
   } 
 </script>
 
-<style>
+<style scoped>
   .el-header,
   .el-footer {
     background-color: #b3c0d1;
@@ -305,23 +305,6 @@
     line-height: 10px;
     min-width: 1300px;
     min-height: 600px;
-  }
-
-
-  .el-row{
-    margin-bottom: 20px;
-    &:last-child{
-      margin-bottom: 0;
-    }
-    
-  }
-
-  .el-col{
-    border-radius: 4px;
-  }
-
-  .parent-container{
-    /* height: 100px; */
   }
 
 

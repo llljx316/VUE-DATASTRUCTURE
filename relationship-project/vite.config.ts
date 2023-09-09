@@ -13,6 +13,7 @@ export default defineConfig({
     vue(),
     AutoImport({
       resolvers: [ElementPlusResolver()],
+      // 自动导入图标组件
     }),
     Components({
       resolvers: [ElementPlusResolver()],
