@@ -38,12 +38,20 @@
                 <!-- 调整排版 -->
                 <el-input v-model="input_name" placeholder="Please input" clearable />
                 <el-input-number v-model="input_rate" :precision="2" :step="0.1" :min="0"/>
-                <el-select v-model='input_class' class="m-2" placeholder="不选为普通群组" >
+                <el-select v-model='input_class' class="m-2" placeholder="不选为普通群组"  clearable>
                   <el-option
                     v-for="item in option_class"
                     :key="item.value"
                     :label="item.name"
                     :value="item.value"
+                  />
+                </el-select>
+                <el-select v-model='userIdSelect' class="m-2" placeholder="不选则暂无朋友" multiple clearable >
+                  <el-option
+                    v-for="item in personStorage"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id"
                   />
                 </el-select>
                 <el-button @click="handleClose">取 消</el-button>
@@ -66,15 +74,16 @@
   <script setup lang="ts">
     // import {Edit} from '@element-plus/icons-vue'
     import {ref, reactive, computed} from 'vue'
-    import { treePrimary,treeMiddle,treeHigh,treeUni,treeOrd, allNM, littleDeleted } from './sharedArguements';
+    import { treePrimary,treeMiddle,treeHigh,treeUni,treeOrd, allNM,
+      __activePartGraph, __cancelSelectionDisp, __partGraphCenter,personStorage  } from './sharedArguements';
     import  {NodeTag} from './dataStructure/NodeBase'
     import { GroupNode } from './dataStructure/GroupNode';
     import {ElMessageBox } from 'element-plus'
-import type { FreeKeyObject } from './dataStructure/FreeKeyObject';
+    import type { FreeKeyObject } from './dataStructure/FreeKeyObject';
     
 
     //相关群组已经引进
-
+      const userIdSelect = ref([])
     //树形结构数据
     
 
@@ -141,7 +150,12 @@ import type { FreeKeyObject } from './dataStructure/FreeKeyObject';
 
     
     function handleNodeClick(data:any) {
-      console.log(data)
+      // console.log(data)
+      if(data.children == undefined){
+        __cancelSelectionDisp.value = true
+        __activePartGraph.value = true
+        __partGraphCenter.value = allNM.getNodeById(data.id)
+      }
     }
 
     function showDialog() { 
@@ -174,6 +188,13 @@ import type { FreeKeyObject } from './dataStructure/FreeKeyObject';
           treeOrd.push(ins)
           break
       }
+
+      //加入关系
+      userIdSelect.value.forEach((id)=>{
+        const node = allNM.getNodeById(id)
+        if(node!=undefined)
+          ins.addRelation(node)
+      })
       
       handleClose()
     }
@@ -195,27 +216,37 @@ import type { FreeKeyObject } from './dataStructure/FreeKeyObject';
 
     
     //删除部分
-    let ids_selected:number[] = []
+    let ids_selected:number[] = reactive([])
 
-    
+    function littleDeleted(group: any[],id:number, obj:{is_deleted:boolean, node:NodeBase | undefined}){
+    if(!obj.is_deleted){
+      console.log(group.length)
+      for(let i = 0; i < group.length; i++){
+        if(group[i].id == id){
+          obj.node = group[i]
+          group.splice(i,1)
+          obj.is_deleted = true
+          return
+        }
+      }
+    }
+  }
 
     function deleteItems(){
       
       //先删显示的
-      
-      let mnode: any
-      let is_deleted = false;
+      const obj = {is_deleted:false, node:undefined}
       ids_selected.forEach((id)=>{
         for(let i = 0; i<trees.length; ++i){
-          littleDeleted(trees[i],id,{is_deleted:is_deleted,node:mnode})
-          if(is_deleted){
+          littleDeleted(trees[i],id,obj)
+          if(obj.is_deleted){
             break
           }
         }
       })
       
       //再删后台的
-      allNM.remove(mnode)
+      allNM.remove(obj.node)
 
     }
     

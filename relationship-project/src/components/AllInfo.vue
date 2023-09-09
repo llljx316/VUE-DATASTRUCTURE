@@ -6,13 +6,14 @@
 </script>
 
 <template>
-    <el-row class="up-info">
-        <el-col :span="24"><information/></el-col>
-    </el-row>
+    
     <el-row :gutter="5" class="down-info">
         <el-col class="info-item" :span="8"><users/></el-col>
         <el-col class="info-item" :span="8"><groups/></el-col>
         <el-col class="info-item" :span="8"><goodFrend/></el-col>
+    </el-row>
+    <el-row class="up-info">
+        <el-col :span="24"><information/></el-col>
     </el-row>
     
     
@@ -21,7 +22,6 @@
 <style scoped>
     .up-info{
         /* margin-bottom: 5px; */
-        margin-top: 2px;
         background-color:azure;
         height:30%;
     }
@@ -32,6 +32,9 @@
         &:last-child{
             margin-bottom: 0;
         }
+
+        margin-top: 2px;
+
         background-color:azure;
         height: 69%;
     }

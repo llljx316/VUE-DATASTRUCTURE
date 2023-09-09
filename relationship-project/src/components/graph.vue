@@ -7,15 +7,15 @@
 <script setup lang="ts">
     import * as echarts from 'echarts';
     import * as jq from 'jQuery';
-    import { computed, onMounted, watch } from 'vue';
-    import { allNM, __activePartGraph,__partGraphCenter } from './sharedArguements';
+    import { ref, onMounted, watch, type Ref } from 'vue';
+    import { allNM, __activePartGraph,__partGraphCenter, NodesDisHash, personStorage, friendCanMade, friendNow, groupNow, friendRecommend, groupRecommend } from './sharedArguements';
     import { NodeBase, NodeTag } from './dataStructure/NodeBase';
     import type { FreeKeyObject } from './dataStructure/FreeKeyObject';
 import HashTable from './dataStructure/HashTable';
+import { PersonNode } from './dataStructure/PersonNode';
+import { GroupNode } from './dataStructure/GroupNode';
 
-    function deepCopy<T>(obj: T): T {
-        return JSON.parse(JSON.stringify(obj));
-    }
+    
 
     interface GraphNode {
     symbolSize: number;
@@ -37,7 +37,6 @@ import HashTable from './dataStructure/HashTable';
 
         // let ROOT_DIR='D:\\homeworks\\VUE-DATASTRUCTURE\\relationship-project\\src\\components'
         changeMainChart()
-        window.onresize = myChart.resize;
 
     }
 
@@ -63,6 +62,8 @@ import HashTable from './dataStructure/HashTable';
             this.target = target.toString()
         }
     }
+
+    
 
     /**
      * 求枚举的数字值函数
@@ -118,6 +119,61 @@ import HashTable from './dataStructure/HashTable';
                 {name:'二级好友'}
             ],
         ]
+
+    /**
+     * 生成对应的option
+     * @param 
+     * 
+     * @returns options
+     */
+     function getOption(name:string, data:any, links:any, category:any){
+        return {
+            title: {
+            text: name,
+            subtext: 'Circular layout',
+            top: 'bottom',
+            left: 'right'
+            },
+            tooltip: {},
+            legend: [
+            {
+                data: category.map(function (a:any) {
+                    return a.name
+                })
+            }
+            ],
+            animationDurationUpdate: 1500,
+            animationEasingUpdate: 'quinticInOut',
+            series: [
+            {
+                name: name,
+                type: 'graph',
+                layout: 'circular',
+                circular: {
+                rotateLabel: true
+                },
+                data: data,
+                links: links,
+                categories: category,
+                label:{
+                    show: true,
+                    // position: "bottom",
+                    distance: 20,
+                    fontSize: 18,
+                    align: "center",
+                },
+                roam: true,
+                lineStyle: {
+                color: 'source',
+                curveness: 0.3
+                }
+            }
+            ],
+            
+        };
+    }
+
+
     function changeMainChart(){
         //建立catagory
         const NodesDis = new Array<NodeDisplay>()
@@ -148,47 +204,8 @@ import HashTable from './dataStructure/HashTable';
 
         let gname = '总关系图'
         
-
-        option = {
-            title: {
-            text: gname,
-            subtext: 'Circular layout',
-            top: 'bottom',
-            left: 'right'
-            },
-            tooltip: {},
-            legend: [
-            {
-                data: categories[0].map(function (a:any) {
-                    return a.name
-                })
-            }
-            ],
-            animationDurationUpdate: 1500,
-            animationEasingUpdate: 'quinticInOut',
-            series: [
-            {
-                name: gname,
-                type: 'graph',
-                layout: 'circular',
-                circular: {
-                rotateLabel: true
-                },
-                data: NodesDis,
-                links: Links,
-                categories: categories[0],
-                roam: true,
-                label: {
-                position: 'right',
-                formatter: '{b}'
-                },
-                lineStyle: {
-                color: 'source',
-                curveness: 0.3
-                }
-            }
-            ]
-        };
+        option = getOption(gname, NodesDis, Links, categories[0])
+        
 
         myChart.setOption(option);
         
@@ -212,8 +229,15 @@ import HashTable from './dataStructure/HashTable';
     function changePartChart(){
         //建立part的data与category
         //建立catagory
-        const NodesDisHash = new HashTable<number,NodeDisplay>()
+        // const NodesDisHash = new HashTable<number,NodeDisplay>()
+        if(allNM.getNodeById(__partGraphCenter.value.id) == undefined){
+            __activePartGraph.value = false
+            return
+        }
+
+        NodesDisHash.clear()
         const Links = new Array<Link>()
+
         //先生成对应的零级节点
         NodesDisHash.put(__partGraphCenter.value.id, new NodeDisplay(
             __partGraphCenter.value.name,
@@ -230,7 +254,45 @@ import HashTable from './dataStructure/HashTable';
             //加入relation
             Links.push(new Link(__partGraphCenter.value.id, node.id))
         })
+        //生成可以交的朋友
+        friendCanMade.value = []
+        
+
+        personStorage.forEach((node) =>{
+            //如果找不到，就加入
+            if(NodesDisHash.get(node.id)==undefined){
+                friendCanMade.value.push(node)
+            }
+        })
+
+        //生成现有的朋友
+        friendNow.value = []
+        groupNow.value = []
+        NodesDisHash.forEachSimple((node: NodeDisplay) => {
+            if(node.id!=__partGraphCenter.value.id.toString()){
+                if(node.category == 3)
+                    friendNow.value.push(allNM.getNodeById(parseInt(node.id)))
+                else
+                    groupNow.value.push(allNM.getNodeById(parseInt(node.id)))
+            }
+        })
+        
+
         //二级节点
+        //生成二级朋友数组
+        getSecondLevelFriend(NodesDisHash, __partGraphCenter, friendRecommend,groupRecommend)
+
+        __partGraphCenter.value.relations.forEach((nodeOne:NodeBase) =>{
+            nodeOne.relations.forEach((nodeTwo:NodeBase)=>{
+                //加入relation
+                //检查
+                //可以优化
+                if(nodeTwo.id!=__partGraphCenter.value.id)
+                    if(nodeOne.id > nodeTwo.id ||NodesDisHash.get(nodeTwo.id) == undefined)
+                        Links.push(new Link(nodeOne.id, nodeTwo.id))
+            })
+        })
+
         __partGraphCenter.value.relations.forEach((nodeOne:NodeBase) =>{
             nodeOne.relations.forEach((nodeTwo:NodeBase)=>{
                 if(nodeTwo.id!=__partGraphCenter.value.id){
@@ -241,72 +303,79 @@ import HashTable from './dataStructure/HashTable';
                             nodeTwo.id
                         ))
                     }
-                    //加入relation
-                    Links.push(new Link(nodeOne.id, nodeTwo.id))
                 }
                 
             })
         })
         
-
-
+        //转换为数组
+        const NodeDis = new Array<NodeDisplay>()
+        NodesDisHash.forEachSimple((node:NodeDisplay)=>{
+            NodeDis.push(node)
+        })
         
-        let option:any
 
-        let gname = '总关系图'
-        
-
-        option = {
-            title: {
-            text: gname,
-            subtext: 'Circular layout',
-            top: 'bottom',
-            left: 'right'
-            },
-            tooltip: {},
-            legend: [
-            {
-                data: categories[0].map(function (a:any) {
-                    return a.name
-                })
-            }
-            ],
-            animationDurationUpdate: 1500,
-            animationEasingUpdate: 'quinticInOut',
-            series: [
-            {
-                name: gname,
-                type: 'graph',
-                layout: 'circular',
-                circular: {
-                rotateLabel: true
-                },
-                data: NodesDis,
-                links: Links,
-                categories: categories[0],
-                roam: true,
-                label: {
-                position: 'right',
-                formatter: '{b}'
-                },
-                lineStyle: {
-                color: 'source',
-                curveness: 0.3
-                }
-            }
-            ]
-        };
-
+        let option = getOption('局部关系图', NodeDis, Links, categories[1])
         myChart.setOption(option);
     }
 
+    /**
+     * 更新二级朋友的函数
+     * @alias 建立一级的哈希表之后
+     * @param HashMap<Disp> 哈希表，用于检查是否已经是朋友
+     * @param centerEle 中心节点
+     * @param FriendRecommend 二级朋友的数组
+     * 改变friendRecommend的值
+     */
+    function getSecondLevelFriend(HashMap:HashTable<any,any>, centerEle:Ref<NodeBase>, FriendRecommend:Ref<any[]>, GroupRecommend:Ref<any[]>){
+        //清空
+        FriendRecommend.value = []
+        GroupRecommend.value = []
+        //新建一个哈希表(二级)
+        const HashMap2 = new HashTable<any,NodeDisplay>()
+        
+        centerEle.value.relations.forEach((nodeOne:any) =>{
+            nodeOne.relations.forEach((nodeTwo:NodeBase)=>{
+                if(nodeTwo.id!=centerEle.value.id){
+                    if(HashMap.get(nodeTwo.id) == undefined){
+                        //当前节点提供的分数
+                        const nowScore = nodeOne.tag==NodeTag.PERSON?0.8:nodeOne.relationCoefficient;
+                        //检查是否在节点内
+                        let ins:any = HashMap2.get(nodeTwo.id)
+                        if(ins == undefined){
+                            //还不在二级关系里
+                            ins = {node:nodeTwo, score: 0}
+                            if(nodeTwo.tag == NodeTag.PERSON){
+                                FriendRecommend.value.push(ins)
+                            }
+                            else{
+                                GroupRecommend.value.push(ins)
+                            }
+                            //插入哈希
+                            HashMap2.put(nodeTwo.id,ins)
+                        }
+                        ins.score+=nowScore
+                    
+                }
+            }})
+        })
+
+        //排序
+        FriendRecommend.value.sort((a,b) => b.score-a.score)
+        GroupRecommend.value.sort((a,b) => b.score-a.score)
+    }
+
     //监听保证实时更新
-    watch({allNM, __activePartGraph, __partGraphCenter},(newValue,oldValue)=>{
+    watch([()=>allNM, ()=>__activePartGraph.value, ()=>__partGraphCenter.value],(newValue,oldValue)=>{
         if(__activePartGraph.value == false)
             changeMainChart()
         else
             changePartChart()
-    })
+        
+        window.onresize = myChart.resize;
+    },{deep:true})
+    
+    
 
     
 

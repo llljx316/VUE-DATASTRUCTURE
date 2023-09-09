@@ -1,5 +1,3 @@
-import LinkedList from './linked-list';
-
 class ValuePair<K, V> {
     constructor(public key: K, public value: V) {}
 
@@ -122,5 +120,15 @@ function defaultToString(item: any): string {
               break;
           }
       }
-  }
+    }
+
+    forEachSimple(callbackFn: (value: V) => any): void {
+      const valuePairs = this.keyValues();
+      for (let i = 0; i < valuePairs.length; i++) {
+          const result = callbackFn(valuePairs[i].value);
+          if (result === false) {
+              break;
+          }
+      }
+    }
   }

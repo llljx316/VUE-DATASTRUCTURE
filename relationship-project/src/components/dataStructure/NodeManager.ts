@@ -90,7 +90,6 @@ export class NodeManager {
         res.nextId = this.nextId
 
         res.nodes = new Array<FreeKeyObject>()
-
         this.nodes.getTable()
         this.nodes.forEach((nodeid,node) => {
             res.nodes.push(node.toJsonableObject())

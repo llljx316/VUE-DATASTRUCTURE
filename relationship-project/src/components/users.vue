@@ -33,7 +33,7 @@
     <div class="bottom-ele">
       <el-col :span="12">
         <el-button class="bottom-button" 
-          icon="edit" @click="showDialog" type="primary">提交</el-button>
+          @click="showDialog" type="primary">添加</el-button>
           </el-col>
         <el-dialog
             title="请输入添加人姓名"
@@ -45,7 +45,7 @@
               <span class="dialog-footer" >
                 <el-input v-model='input_user' placeholder="请输入姓名" clearable />
                 <div>请选择普通组织（可多个）:</div>
-                <el-select v-model='selectedOrd' class="m-2" placeholder="不选为没有" multiple>
+                <el-select v-model='selectedOrd' class="m-2" placeholder="不选为没有" multiple clearable>
                   <el-option
                     v-for="item in treeOrd"
                     :key="item.id"
@@ -57,7 +57,7 @@
                 
 
                 <div>请选择小学:</div>
-                <el-select v-model='selectedPri' class="m-2" placeholder="不选为没有" clearable >
+                <el-select v-model='selectedPri' class="m-2" placeholder="不选为没有">
                     <!-- <el-option :value="null" label="空选项"></el-option>     -->
                   <el-option
                     v-for="item in treePrimary"
@@ -97,9 +97,18 @@
                     :value="item"
                   />
                 </el-select>
+                <div>请选择朋友:</div>
+                <el-select v-model='selectedFri' class="m-2" placeholder="不选为没有" multiple clearable>
+                  <el-option
+                    v-for="item in personStorage"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id"
+                  />
+                </el-select>
 
-                <el-button @click="handleClose">取 消</el-button>
-                <el-button type="primary" @click="confirmDialog">确 定</el-button>
+                <el-button @click="clear">清空</el-button>
+                <el-button type="primary" @click="confirmDialog">确定</el-button>
               </span>
           </template>
           </el-dialog>
@@ -116,7 +125,7 @@
 
 <script setup lang="ts">
 import { treePrimary,treeMiddle,treeHigh,treeUni,treeOrd, allNM, __activePartGraph, __partGraphCenter
-,__cancelSelectionDisp } from './sharedArguements';
+,__cancelSelectionDisp, personStorage, deleteItemMult } from './sharedArguements';
 import {ref,reactive} from 'vue'
 import {PersonNode} from './dataStructure/PersonNode'
 import type { FreeKeyObject } from './dataStructure/FreeKeyObject';
@@ -129,12 +138,12 @@ const selectedPri = ref()
 const selectedMid = ref()
 const selectedHig = ref()
 const selectedUni = ref()
+const selectedFri = ref([])
 
-const selectedEle = [selectedOrd, selectedPri, selectedMid, selectedHig,selectedUni]
+const selectedEle = [selectedOrd, selectedPri, selectedMid, selectedHig,selectedUni, selectedFri]
 const input_user = ref('')
 
 //显示数组
-const personStorage = reactive<PersonNode[]>([])
 const dialogVisible = ref(false)
 
 function handleCellClick(row:number, column:number, event:any) {
@@ -145,11 +154,11 @@ function handleCellClick(row:number, column:number, event:any) {
 //简单的函数直接抄
 function showDialog() {
     dialogVisible.value = true;
-    console.log(selectedOrd.value)
 }
 
 function handleClose(){
-    dialogVisible.value = false;
+  dialogVisible.value = false;
+
 }
 
 /**
@@ -175,6 +184,11 @@ function confirmDialog(){
     formRelation(newPerson,selectedMid.value)
     formRelation(newPerson,selectedHig.value)
     formRelation(newPerson,selectedUni.value)
+    // if(selectedFri.value != undefined){
+      selectedFri.value.forEach((id)=>{
+        formRelation(newPerson,allNM.getNodeById(id))
+      })
+    // }
 
     
     //添加到显示数组中（也当表格）
@@ -183,19 +197,17 @@ function confirmDialog(){
     //添加指针到管理器
     allNM.insert(newPerson)
 
-    selectedEle.forEach((item,index)=>{
-        if(index==0) item.value=[]
-        else item.value=null
-    })
-
-    input_user.value=''
+    clear()
 
     //关闭
     handleClose()
+    dialogVisible.value = false;
 
     
 }
 
+
+//应该是node的数组
 let node_selected:any = []
 
 const handleCheckChange = (
@@ -214,35 +226,31 @@ function handleDeleteSelected(){
       })
       .then(() => {
         // 用户点击了确定按钮，执行删除操作
-        deleteItems();
+        // deleteItems();
+        deleteItemMult(personStorage,node_selected)
       })
       .catch(() => {
         // 用户点击了取消按钮或在对话框之外点击，不执行任何操作
       });
 }
 
-function deleteItems(){
-      
-    //先删显示的
-    let mnode: any
-    node_selected.forEach((node:NodeBase)=>{
-        personStorage.forEach((pNode:NodeBase,index:number)=>{
-            if(pNode==node){
-                mnode=node
-                personStorage.splice(index,1)
-            }
-        })
-        //再删后台的
-        allNM.remove(mnode)
-    })
-}
 
-const cancelSelectionDisp = ref(false)
 
 const handleRowClick = (row:any) => {
-  __partGraphCenter.value = personStorage[row]
+  __partGraphCenter.value = row
   __activePartGraph.value = true
   __cancelSelectionDisp.value = true
+}
+
+/**
+ * 清除输入的值
+ */
+function clear(){
+  input_user.value=''
+  selectedEle.forEach((item,index)=>{
+    if(index==0||index==5) item.value=[]
+    else item.value=null
+  })
 }
 
 </script>
