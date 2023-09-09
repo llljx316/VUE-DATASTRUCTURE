@@ -199,7 +199,7 @@ function confirmDialog(){
 
     
     //添加到显示数组中（也当表格）
-    personStorage.push(newPerson)
+    personStorage.value.push(newPerson)
 
     //添加指针到管理器
     allNM.insert(newPerson)
@@ -234,7 +234,7 @@ function handleDeleteSelected(){
       .then(() => {
         // 用户点击了确定按钮，执行删除操作
         // deleteItems();
-        deleteItemMult(personStorage,node_selected.value)
+        deleteItemMult(personStorage.value,node_selected.value)
       })
       .catch(() => {
         // 用户点击了取消按钮或在对话框之外点击，不执行任何操作

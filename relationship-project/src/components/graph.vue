@@ -1,5 +1,5 @@
 <template>
-    <div id="chart-container" class="border-item" style="height: 96%; margin-top: 1%; background-color: white;"></div>
+    <div id="chart-container" class="border-item" style="height: 95%; margin-top: 1%; background-color: white;"></div>
 </template>
 
 
@@ -259,7 +259,7 @@ import { GroupNode } from './dataStructure/GroupNode';
         friendCanMade.value = []
         
 
-        personStorage.forEach((node) =>{
+        personStorage.value.forEach((node) =>{
             //如果找不到，就加入
             if(NodesDisHash.get(node.id)==undefined){
                 friendCanMade.value.push(node)

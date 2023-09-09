@@ -117,11 +117,11 @@ export class NodeManager {
             if (node.tag == NodeTag.PERSON) {
                 let newNode = new PersonNode(node.name, node.gender, node.id)
                 idMap.set(node.id, newNode)
-                this.nodes.push(newNode)
+                this.nodes.put(newNode.id, newNode)
             } else {
                 let newNode = new GroupNode(node.name, node.tag, node.coef, node.id)
                 idMap.set(node.id, newNode)
-                this.nodes.push(newNode)
+                this.nodes.put(newNode.id,newNode)
             }
         }
 

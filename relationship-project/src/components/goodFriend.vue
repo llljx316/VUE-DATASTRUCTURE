@@ -26,9 +26,6 @@
         :data="groupNow"
         @cell-click="handleCellClick"
         v-if="__activePartGraph&&__partGraphCenter.tag==NodeTag.PERSON"
-        style="border-radius: 20px;
-            overflow: hidden;
-            border-collapse: collapse;"
         >
         <el-table-column
             prop="name"
@@ -81,12 +78,22 @@
 
         .table-item-half-full{
             width:100%;
-            height: 92%;
+            height: 93%;
+            border-radius: 0 0 20px 20px;
+            overflow: auto;
         }
         
         .table-item-half{
             width:100%;
             height:46%;
+            overflow: auto;
+
+        }
+        .down-half{
+            width:100%;
+            height:46%;
+            border-radius: 0 0 20px 20px;
+            overflow: auto;
         }
 
         

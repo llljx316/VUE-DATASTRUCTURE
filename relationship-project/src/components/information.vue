@@ -6,7 +6,7 @@ import { ref, computed, watch } from 'vue'
 import type { UploadFile, UploadInstance, UploadProps, UploadRawFile  } from 'element-plus'
 import {genFileId } from 'element-plus'
 import { NodeBase, NodeTag } from './dataStructure/NodeBase';
-import { init } from 'echarts';
+import download from './download.vue'
 
 
 const upload = ref<UploadInstance>()
@@ -40,38 +40,6 @@ const handleFile = (response:any, file:UploadFile, fileList) =>{
 
 const classType = computed(()=>{return (__partGraphCenter.value.tag == NodeTag.PERSON) ? '人物' : '群组'})
 const showAddGroup = computed(() => {return classType.value=='人物'})
-// const handleRequest = (e) => {
-// //   const fd = new FileReader()
-// //   fd.readAsDataURL(e.file)
-// //   // 将文件转化为base64格式传入后端
-// //   fd.onload = () => {
-// //     axios
-// //       .post('./upload', {
-// //         imgUrl: fd.result,
-// //       })
-// //       .then((res) => {
-// //         file = res.data.data
-// //       })
-// //   }
-  
-// //   // 上传blob格式
-// //   axios
-// //     .post('./upload', {
-// //       imgUrl: URL.createObjectURL(e.file),
-// //     })
-// //     .then((res) => {
-// //       file = res.data.data
-// //     })
-// }
-
-    // watch({personStorage, ()=>{}},(newval,oldval) => {
-    //     let items: NodeBase[] = excludeAlreadyFriend.value
-    //     items = []
-    //     personStorage.forEach((node)=>{
-    //         if(NodesDisHash.get(node.id) == undefined)
-    //             items.push(node)
-    //     })
-    // })
 
     //选朋友需要用到的
     const userIdSelect = ref([])
@@ -197,14 +165,14 @@ const showAddGroup = computed(() => {return classType.value=='人物'})
 
 <template>
     <div class="down-textrue">
-        <el-col id="down-item-total"  v-if = '__cancelSelectionDisp'>
-            <el-row :span="12" id = "down-item-item">
+        <el-col id="down-item-total">
+            <el-row   v-if = '__cancelSelectionDisp' :span="12" id = "down-item-item">
                 <p class="pinfo-item">
                     <!-- 信息 -->
                     {{classType}}:{{__partGraphCenter.name}}
                 </p>
             </el-row>
-            <el-row id = "down-item-item" :span="12">
+            <el-row v-if = '__cancelSelectionDisp'  id = "down-item-item" :span="12">
                 <el-button type="primary" @click="handleCancelSelection"
                 >取消选择</el-button>
                 <el-button type="primary" @click="()=>{friendDialogVisible = true;}">添加朋友</el-button>
@@ -219,6 +187,7 @@ const showAddGroup = computed(() => {return classType.value=='人物'})
                 <el-button @click="()=>{drawerVisable = true}" type="primary" v-if="__partGraphCenter.tag==NodeTag.PERSON">社交推荐</el-button>
                 
             </el-row>
+
                 <!-- 选朋友的弹框 -->
                 <el-dialog
                     title="提示"
@@ -358,40 +327,13 @@ const showAddGroup = computed(() => {return classType.value=='人物'})
                         </el-table-column>
                     </el-table>
                     </el-drawer>
-
+                    <el-row style="margin-top: 4%;"><download/></el-row>
             <!-- 有部分选择的时候 -->
         </el-col> 
         
         
-        <!-- <div class="right-side">
-            导入
-            <el-upload
-                ref="upload"
-                action=""
-                class="upload-demo"
-                :limit="1"
-                :on-exceed="handleExceed"
-                :auto-upload="true"
-                :on-success="handleFile"
-                :http-request="handleRequest"
-                :show-file-list="false"
-                accept=".json"
-                :file-list="files"
-            >
-                <el-button class="ml-3" type="success">
-                upload to server
-                </el-button>
-                <template #tip>
-                <div class="el-upload__tip text-red">
-                    limit 1 file, new file will cover the old file
-                </div>
-                </template>
-            </el-upload>
-
-            <el-button type="primary" @click="handleExport"
-            >导出</el-button>
-        </div> -->
     </div>
+
 </template>
 
 <style scoped>

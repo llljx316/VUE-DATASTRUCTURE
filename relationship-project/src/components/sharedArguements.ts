@@ -1,6 +1,6 @@
 import { ref, reactive } from "vue";
 import { NodeManager } from "./dataStructure/NodeManager";
-import { NodeBase } from "./dataStructure/NodeBase";
+import { NodeBase, NodeTag } from "./dataStructure/NodeBase";
 import HashTable from "./dataStructure/HashTable";
 
 export const allNM = reactive<NodeManager>(new NodeManager())
@@ -19,7 +19,7 @@ export const __partGraphCenter = ref<NodeBase>(new NodeBase(''))
 export const __cancelSelectionDisp = ref(false)
 
 //用的用户变量
-export const personStorage = reactive<PersonNode[]>([])//可以回去
+export const personStorage = ref<PersonNode[]>([])//可以回去
 
 //哈希表方便查找
 export const NodesDisHash = new HashTable<number,any>()//可以回去
@@ -49,4 +49,35 @@ export const groupRecommend = ref<NodeBase[]>([])
         //再删后台的
         allNM.remove(mnode)
     })
+}
+
+export function refreshPersonAndGroups(){
+  personStorage.value = []
+  treesAll.forEach((tree:any)=>{
+    tree.splice(0)
+  })
+  allNM.nodes.forEachSimple((node:NodeBase)=>{
+    switch(node.tag){
+      case NodeTag.PERSON:
+        personStorage.value.push(node)
+        break
+      
+      case NodeTag.PRIMARY_SCHOOL:
+        treePrimary.push(node)
+        break
+      case NodeTag.JUNIOR_HIGH:
+        treeMiddle.push(node)
+        break
+      case NodeTag.SENIOR_HIGH:
+        treeHigh.push(node)
+        break
+      case NodeTag.UNIVERSITY:
+        treeUni.push(node)
+        break
+      default:
+        treeOrd.push(node)
+        break
+      }
+    }
+  )
 }
